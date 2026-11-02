@@ -27,6 +27,9 @@ export async function POST(request: NextRequest) {
     }
 
     const user = users[0]
+    if (!user) {
+      return NextResponse.json({ error: "Identifiants invalides" }, { status: 401 })
+    }
 
     // Vérifier le mot de passe (en production, utiliser bcrypt)
     const hashedPassword = Buffer.from(password).toString("base64")

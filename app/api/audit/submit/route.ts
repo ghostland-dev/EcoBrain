@@ -55,6 +55,10 @@ export async function POST(request: NextRequest) {
         ${JSON.stringify(body)}, NOW()
       ) RETURNING id
     `
+    const auditId = audit[0]?.id
+    if (!auditId) {
+      throw new Error("Audit insert returned no id")
+    }
 
     // Générer des recommandations
     const recommendations = []
@@ -99,7 +103,7 @@ export async function POST(request: NextRequest) {
           audit_id, type, title, description, action, 
           estimated_savings, priority, created_at
         ) VALUES (
-          ${audit[0].id}, ${rec.type}, ${rec.title}, ${rec.description},
+          ${auditId}, ${rec.type}, ${rec.title}, ${rec.description},
           ${rec.action}, ${rec.savings}, ${rec.priority}, NOW()
         )
       `
@@ -107,7 +111,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      auditId: audit[0].id,
+      auditId: auditId,
       score: finalScore,
       recommendations,
       benchmarkScore: getSectorBenchmark(sector),

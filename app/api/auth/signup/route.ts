@@ -37,13 +37,17 @@ export async function POST(request: NextRequest) {
         NOW(), NOW()
       ) RETURNING id, email, first_name, last_name
     `
+    const newUser = user[0]
+    if (!newUser) {
+      throw new Error("User insert returned no row")
+    }
 
     // Créer le profil d'entreprise
     await sql`
       INSERT INTO companies (
         user_id, name, size, created_at, updated_at
       ) VALUES (
-        ${user[0].id}, ${company}, ${employees || "unknown"}, NOW(), NOW()
+        ${newUser.id}, ${company}, ${employees || "unknown"}, NOW(), NOW()
       )
     `
 
@@ -52,7 +56,7 @@ export async function POST(request: NextRequest) {
       INSERT INTO subscriptions (
         user_id, plan_type, status, trial_ends_at, created_at, updated_at
       ) VALUES (
-        ${user[0].id}, ${plan || "starter"}, 'trial', 
+        ${newUser.id}, ${plan || "starter"}, 'trial', 
         NOW() + INTERVAL '14 days', NOW(), NOW()
       )
     `
@@ -60,10 +64,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       user: {
-        id: user[0].id,
-        email: user[0].email,
-        firstName: user[0].first_name,
-        lastName: user[0].last_name,
+        id: newUser.id,
+        email: newUser.email,
+        firstName: newUser.first_name,
+        lastName: newUser.last_name,
       },
       message: "Compte créé avec succès",
     })
